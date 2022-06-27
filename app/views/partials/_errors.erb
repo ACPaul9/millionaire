@@ -1,0 +1,15 @@
+<% errors = model.errors %>
+
+<% if errors.any? %>
+  <div class="lead mb-3 text-danger">
+    <%= t('views.errors.form_has') %> <%= I18n.t('views.errors.error', count: errors.count) %>
+  </div>
+  <div id="error_explanation">
+    <div class="alert alert-danger alert-dismissible fade show d-flex flex-column" role="alert">
+      <% errors.full_messages.each do |message| %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <li><%= message %></li>
+      <% end %>
+    </div>
+  </div>
+<% end %>
