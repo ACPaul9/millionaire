@@ -89,4 +89,126 @@ RSpec.describe GamesController, type: :controller do
       end
     end
   end
+
+  describe '#answer' do
+    context 'when anonymous' do
+      before { put :answer, params: { id: game_w_questions.id } }
+
+      it 'return status not 200' do
+        expect(response.status).not_to eq(200)
+      end
+
+      it 'redirect to the new session path' do
+        expect(response).to redirect_to(new_user_session_path)
+      end
+
+      it 'flash alert' do
+        expect(flash[:alert]).to be
+      end
+    end
+
+    context 'when the user is logged in' do
+      before(:each) do
+        sign_in user
+        generate_questions(60)
+        put :answer, params: { id: game_w_questions.id, letter: answer_key }
+      end
+
+      let(:game) { assigns(:game) }
+
+      context 'correct answer' do
+        let!(:answer_key) { game_w_questions.current_game_question.correct_answer_key }
+
+        it 'level up' do
+          expect(game.current_level).to eq(1)
+        end
+
+        it 'redirect to game in progress' do
+          expect(response).to redirect_to(game_path(game))
+        end
+
+        it 'continue game' do
+          expect(game.finished?).to be false
+        end
+
+        it 'return status 302' do
+          expect(response.status).to eq(302)
+        end
+
+        it 'no flash alert' do
+          expect(flash[:alert]).to_not be
+        end
+      end
+
+      context 'wrong answer' do
+        # a - wrong answer
+        let!(:answer_key) { 'a' }
+
+        it 'return status :fail' do
+          expect(game.status).to eq(:fail)
+        end
+
+        it 'current level 0' do
+          expect(game.current_level).to be 0
+        end
+
+        it 'game finished' do
+          expect(game.finished?).to be_truthy
+        end
+
+        it 'redirect to the user path' do
+          expect(response).to redirect_to(user_path(user))
+        end
+
+        it 'flash alert' do
+          expect(flash[:alert]).to be
+        end
+      end
+    end
+  end
+
+  describe '#take_money' do
+    context 'when anonymous' do
+      before { put :take_money, params: { id: game_w_questions.id } }
+
+      it 'return status not 200' do
+        expect(response.status).not_to eq(200)
+      end
+
+      it 'redirect to the new session path' do
+        expect(response).to redirect_to(new_user_session_path)
+      end
+
+      it 'flash alert' do
+        expect(flash[:alert]).to be
+      end
+    end
+
+    context 'when user sign in' do
+      before(:each) do
+        sign_in user
+        generate_questions(60)
+        game_w_questions.update_attribute(:current_level, 2)
+        put :take_money, params: { id: game_w_questions.id }
+      end
+
+      let(:game) { assigns(:game) }
+
+      it 'game finished' do
+        expect(game.finished?).to be_truthy
+      end
+
+      it 'game prize' do
+        expect(game.prize).to eq(200)
+      end
+
+      it 'redirect to the user path' do
+        expect(response).to redirect_to(user_path(user))
+      end
+
+      it 'flash alert' do
+        expect(flash[:warning]).to be
+      end
+    end
+  end
 end
