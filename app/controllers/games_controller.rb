@@ -1,8 +1,3 @@
-# (c) goodprogrammer.ru
-#
-# Основной игровой контроллер
-# Создает новую игру, обновляет статус игры по ответам юзера, выдает подсказки
-#
 class GamesController < ApplicationController
   before_action :authenticate_user!
 

@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.0.3"
+ruby "3.1.2"
 
 gem "rails", "~> 7.0.0"
 
@@ -56,6 +56,7 @@ group :development, :test do
 
   # Гем, который позволяет смотреть, что видит capybara
   gem 'launchy'
+  gem 'rails-controller-testing'
 end
 
 group :development do
