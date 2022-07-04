@@ -34,7 +34,7 @@ RSpec.describe GamesController, type: :controller do
 
       context 'user views his game' do
         it 'game not over' do
-          expect(game.finished?).to be_falsey
+          expect(game.finished?).to be false
         end
 
         it 'game for this user' do
