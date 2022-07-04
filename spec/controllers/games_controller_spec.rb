@@ -41,11 +41,11 @@ RSpec.describe GamesController, type: :controller do
           expect(game.user).to eq(user)
         end
 
-        it 'should' do
+        it 'will give status 200' do
           expect(response.status).to eq(200)
         end
 
-        it 'should' do
+        it 'render show view' do
           expect(response).to render_template('show')
         end
       end
@@ -167,6 +167,17 @@ RSpec.describe GamesController, type: :controller do
     end
   end
 
+  it 'uses fifty-fifty' do
+    expect(game_w_questions.current_game_question.help_hash[:audience_help]).not_to be
+    # И подсказка не использована
+    expect(game_w_questions.audience_help_used).to be_falsey
+
+    # Пишем запрос в контроллер с нужным типом (put — не создаёт новых сущностей, но что-то меняет)
+    put :help, params: {id: game_w_questions.id, help_type: :audience_help}
+    game = assigns(:game)
+
+  end
+
   describe '#take_money' do
     context 'when anonymous' do
       before { put :take_money, params: { id: game_w_questions.id } }
@@ -208,6 +219,64 @@ RSpec.describe GamesController, type: :controller do
 
       it 'flash alert' do
         expect(flash[:warning]).to be
+      end
+    end
+  end
+
+  describe '#help' do
+    context 'when anonymous' do
+      before { put :help, params: {id: game_w_questions.id } }
+
+      it 'should not response' do
+        expect(response.status).not_to eq(200)
+      end
+
+      it 'should redirect' do
+        expect(response).to redirect_to(new_user_session_path)
+      end
+
+      it 'should show alert' do
+        expect(flash[:alert]).to be
+      end
+    end
+
+    context 'when user sign in' do
+      let(:game) { assigns(:game) }
+
+      before(:each) { sign_in user }
+
+      context 'use 50/50' do
+        before do
+          expect(game_w_questions.current_game_question.help_hash[:fifty_fifty]).not_to be
+          expect(game_w_questions.fifty_fifty_used).to be_falsey
+
+          put :help, params: {id: game_w_questions.id, help_type: :fifty_fifty}
+        end
+
+        it 'game should not be finished' do
+          expect(game.finished?).to be false
+        end
+
+        it 'should use 50/50 help' do
+          expect(game.fifty_fifty_used).to be true
+        end
+
+        it '50/50 help hash should be' do
+          expect(game.current_game_question.help_hash[:fifty_fifty]).to be
+        end
+
+        it '50/50 help hash should contain correct key' do
+          expect(game.current_game_question.help_hash[:fifty_fifty]).to include(game.current_game_question
+                                                                                    .correct_answer_key)
+        end
+
+        it '50/50 help hash should have current size' do
+          expect(game.current_game_question.help_hash[:fifty_fifty].size).to eq 2
+        end
+
+        it 'should redirect' do
+          expect(response).to redirect_to(game_path(game))
+        end
       end
     end
   end
