@@ -167,17 +167,6 @@ RSpec.describe GamesController, type: :controller do
     end
   end
 
-  it 'uses fifty-fifty' do
-    expect(game_w_questions.current_game_question.help_hash[:audience_help]).not_to be
-    # И подсказка не использована
-    expect(game_w_questions.audience_help_used).to be_falsey
-
-    # Пишем запрос в контроллер с нужным типом (put — не создаёт новых сущностей, но что-то меняет)
-    put :help, params: {id: game_w_questions.id, help_type: :audience_help}
-    game = assigns(:game)
-
-  end
-
   describe '#take_money' do
     context 'when anonymous' do
       before { put :take_money, params: { id: game_w_questions.id } }
